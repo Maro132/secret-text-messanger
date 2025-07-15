@@ -1,6 +1,6 @@
 import streamlit as st
 from cryptography.fernet import Fernet
-from cryptography.exceptions import InvalidToken
+from cryptography.fernet import InvalidToken
 
 # Core encryption/decryption functions
 def generate_encryption_key():
