@@ -1,6 +1,6 @@
 import streamlit as st
 from cryptography.fernet import Fernet
-from cryptography.exceptions import InvalidToken
+# Removed: from cryptography.exceptions import InvalidToken - handled generally now
 
 # Core encryption/decryption functions
 def generate_encryption_key():
@@ -11,6 +11,7 @@ def encrypt_text(plaintext, key_str):
     return f.encrypt(plaintext.encode()).decode()
 
 def decrypt_text(ciphertext, key_str):
+    # This function will raise an exception if the key is invalid or ciphertext is corrupted
     f = Fernet(key_str.encode())
     return f.decrypt(ciphertext.encode()).decode()
 
@@ -22,7 +23,6 @@ st.title("Secure Text Messenger")
 st.header("Generate Key")
 col1, col2 = st.columns([3, 1])
 with col1:
-    # Use st.session_state to preserve key value across reruns
     if 'current_key' not in st.session_state:
         st.session_state.current_key = ""
     key_input = st.text_input("Key", value=st.session_state.current_key, key="main_key_input")
@@ -63,14 +63,13 @@ if st.button("Decrypt Text", type="secondary"):
             decrypted_output = decrypt_text(decrypt_ciphertext_input, decrypt_key_input)
             st.success("Decryption successful!")
             st.text_area("Decrypted Text", value=decrypted_output, height=100, disabled=True)
-        except InvalidToken:
-            st.error("Error: Invalid key or corrupted ciphertext.")
-        except Exception as e:
-            st.error(f"Decryption error: {e}. Ensure the key and ciphertext are correct.")
+        except Exception as e: # Catching general Exception now
+            if "InvalidToken" in str(e): # Check if the error message contains "InvalidToken"
+                st.error("Error: Invalid key or corrupted ciphertext.")
+            else:
+                st.error(f"Decryption error: {e}. Ensure the key and ciphertext are correct.")
     else:
         st.warning("Please enter ciphertext and key for decryption.")
 
 st.markdown("---")
 st.info("Note: This app uses secure Fernet encryption. The key is essential for decryption.")
-
-
